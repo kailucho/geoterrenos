@@ -23,7 +23,12 @@ import {
   Box,
 } from "@mui/material";
 
-const Form = ({ propertyLocation, selectedProperty, setSelectedProperty }) => {
+const Form = ({
+  propertyLocation,
+  selectedProperty,
+  setSelectedProperty,
+  fetchProperties,
+}) => {
   const [property, setProperty] = useState({
     name: "",
     description: "",
@@ -100,9 +105,13 @@ const Form = ({ propertyLocation, selectedProperty, setSelectedProperty }) => {
   const saveProperty = async () => {
     try {
       let propertyDocRef;
-      if (selectedProperty) {
+
+      if (selectedProperty && selectedProperty.id) {
+        // Actualizar propiedad existente
         propertyDocRef = doc(db, "properties", selectedProperty.id);
+        await updateDoc(propertyDocRef, { ...property, photos: [] });
       } else {
+        // Crear nueva propiedad
         propertyDocRef = await addDoc(collection(db, "properties"), {
           ...property,
           photos: [],
@@ -118,6 +127,7 @@ const Form = ({ propertyLocation, selectedProperty, setSelectedProperty }) => {
           : "¡Propiedad guardada exitosamente!"
       );
 
+      // Resetear estado
       setProperty({
         name: "",
         description: "",
@@ -132,6 +142,7 @@ const Form = ({ propertyLocation, selectedProperty, setSelectedProperty }) => {
         location: propertyLocation,
       });
       setSelectedProperty(null);
+      fetchProperties();
     } catch (e) {
       console.error("Error al guardar la propiedad: ", e);
     }

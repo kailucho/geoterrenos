@@ -30,27 +30,16 @@ import {
   LocationOn,
 } from "@mui/icons-material";
 
-const TerrenoList = ({ setSelectedProperty }) => {
-  const [properties, setProperties] = useState([]);
+const TerrenoList = ({
+  setSelectedProperty,
+  fetchProperties,
+  properties,
+  setProperties,
+}) => {
   const [filteredProperties, setFilteredProperties] = useState([]);
   const [district, setDistrict] = useState("");
   const [propertyType, setPropertyType] = useState("");
   const db = getFirestore(app);
-
-  const fetchProperties = async () => {
-    const propertiesCollection = collection(db, "properties");
-    const propertySnapshot = await getDocs(propertiesCollection);
-    const propertyList = propertySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-    setProperties(propertyList);
-    setFilteredProperties(propertyList);
-  };
-
-  useEffect(() => {
-    fetchProperties();
-  }, []);
 
   useEffect(() => {
     let filtered = properties;

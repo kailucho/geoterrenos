@@ -84,6 +84,7 @@ const HomePage = () => {
                 propertyLocation={propertyLocation}
                 selectedProperty={selectedProperty}
                 setSelectedProperty={setSelectedProperty}
+                fetchProperties={fetchProperties}
               />
             </Paper>
 
@@ -98,6 +99,8 @@ const HomePage = () => {
               <TerrenoList
                 setSelectedProperty={setSelectedProperty}
                 properties={properties}
+                fetchProperties={fetchProperties}
+                setProperties={setProperties}
               />
             </Paper>
           </Box>
@@ -125,6 +128,7 @@ const HomePage = () => {
                   propertyLocation={propertyLocation}
                   selectedProperty={selectedProperty}
                   setSelectedProperty={setSelectedProperty}
+                  fetchProperties={fetchProperties}
                 />
               </Paper>
             </Box>
@@ -140,6 +144,8 @@ const HomePage = () => {
               <TerrenoList
                 setSelectedProperty={setSelectedProperty}
                 properties={properties}
+                fetchProperties={fetchProperties}
+                setProperties={setProperties}
               />
             </Paper>
           </Box>
