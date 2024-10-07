@@ -41,14 +41,14 @@ const Form = ({
     address: "",
     photos: [],
     location: propertyLocation,
+    currency: "PEN", // Inicializar la moneda por defecto en Soles
   });
-  const [pricePerM2Formatted, setPricePerM2Formatted] = useState(""); // Estado para mostrar el valor formateado
-  const [error, setError] = useState(""); // Estado para el mensaje de error
+  const [pricePerM2Formatted, setPricePerM2Formatted] = useState("");
+  const [error, setError] = useState("");
 
   const db = getFirestore(app);
   const storage = getStorage(app);
 
-  // Lista de distritos de Arequipa
   const arequipaDistricts = [
     "Cercado",
     "Yanahuara",
@@ -70,7 +70,6 @@ const Form = ({
   useEffect(() => {
     if (selectedProperty) {
       setProperty(selectedProperty);
-      // Formatear el precio al cargar la propiedad seleccionada
       setPricePerM2Formatted(
         selectedProperty.pricePerM2Raw
           ? new Intl.NumberFormat("en-US").format(
@@ -87,14 +86,11 @@ const Form = ({
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    console.log(name, value);
-    // Separar el control del precio para formatearlo correctamente
     if (name === "pricePerM2Raw") {
-      const rawValue = value.replace(/[^0-9]/g, ""); // Remover cualquier carácter no numérico
+      const rawValue = value.replace(/[^0-9]/g, "");
       const formattedValue = rawValue
         ? new Intl.NumberFormat("en-US").format(rawValue)
         : "";
-      console.log(rawValue, formattedValue);
       setProperty({ ...property, [name]: rawValue });
       setPricePerM2Formatted(formattedValue);
     } else {
@@ -103,12 +99,16 @@ const Form = ({
   };
 
   const handleFileChange = (e) => {
-    const files = Array.from(e.target.files).slice(0, 3); // Limitar a 3 archivos
+    const files = Array.from(e.target.files).slice(0, 3);
     setProperty({ ...property, photos: files });
   };
 
   const handleDistrictChange = (e) => {
     setProperty({ ...property, district: e.target.value });
+  };
+
+  const handleCurrencyChange = (e) => {
+    setProperty({ ...property, currency: e.target.value });
   };
 
   const uploadPhotos = async (propertyId) => {
@@ -125,7 +125,6 @@ const Form = ({
   };
 
   const saveProperty = async () => {
-    // Validación de campos obligatorios
     if (!property.name) {
       setError("Por favor, ingrese el nombre de la propiedad.");
       return;
@@ -147,11 +146,9 @@ const Form = ({
       let propertyDocRef;
 
       if (selectedProperty && selectedProperty.id) {
-        // Actualizar propiedad existente
         propertyDocRef = doc(db, "properties", selectedProperty.id);
         await updateDoc(propertyDocRef, { ...property, photos: [] });
       } else {
-        // Crear nueva propiedad
         propertyDocRef = await addDoc(collection(db, "properties"), {
           ...property,
           photos: [],
@@ -167,7 +164,6 @@ const Form = ({
           : "¡Propiedad guardada exitosamente!"
       );
 
-      // Resetear estado
       setProperty({
         name: "",
         description: "",
@@ -180,10 +176,11 @@ const Form = ({
         address: "",
         photos: [],
         location: propertyLocation,
+        currency: "PEN",
       });
       setPricePerM2Formatted("");
       setSelectedProperty(null);
-      setError(""); // Limpiar errores
+      setError("");
       fetchProperties();
     } catch (e) {
       console.error("Error al guardar la propiedad: ", e);
@@ -250,10 +247,22 @@ const Form = ({
           <TextField
             label='Precio por m²'
             name='pricePerM2Raw'
-            value={pricePerM2Formatted} // Usar valor formateado en el input
+            value={pricePerM2Formatted}
             onChange={handleInputChange}
             fullWidth
           />
+          <FormControl sx={{ minWidth: 100 }}>
+            <Select
+              value={property.currency} // Ajustar a la moneda seleccionada en el estado
+              onChange={handleCurrencyChange}
+            >
+              <MenuItem value='PEN'>Soles</MenuItem>
+              <MenuItem value='USD'>Dólares</MenuItem>
+            </Select>
+          </FormControl>
+        </Stack>
+
+        <Stack direction='row' spacing={2}>
           <TextField
             type='number'
             label='Área Total (m²)'

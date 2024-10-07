@@ -20,8 +20,8 @@ const containerStyle = {
 };
 
 const center = {
-  lat: -12.0464, // Centro de Lima por defecto
-  lng: -77.0428,
+  lat: -16.409047, // Centro de Lima por defecto
+  lng: -71.537451,
 };
 
 const Map = ({ setPropertyLocation, properties }) => {
@@ -101,22 +101,20 @@ const Map = ({ setPropertyLocation, properties }) => {
               {/* Mostrar imágenes adicionales con Stack */}
               <Stack direction='row' spacing={1}>
                 {selectedMarker.photos &&
-                  selectedMarker.photos
-                    .slice(1)
-                    .map((url, idx) => (
-                      <Box
-                        key={idx}
-                        component='img'
-                        src={url}
-                        alt={`Propiedad ${idx}`}
-                        sx={{
-                          width: 50,
-                          height: 50,
-                          borderRadius: 1,
-                          boxShadow: 1,
-                        }}
-                      />
-                    ))}
+                  selectedMarker.photos.slice(1).map((url, idx) => (
+                    <Box
+                      key={idx}
+                      component='img'
+                      src={url}
+                      alt={`Propiedad ${idx}`}
+                      sx={{
+                        width: 50,
+                        height: 50,
+                        borderRadius: 1,
+                        boxShadow: 1,
+                      }}
+                    />
+                  ))}
               </Stack>
             </CardContent>
           </Card>
