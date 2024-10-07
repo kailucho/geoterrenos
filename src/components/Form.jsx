@@ -42,6 +42,8 @@ const Form = ({
     photos: [],
     location: propertyLocation,
   });
+  const [pricePerM2Formatted, setPricePerM2Formatted] = useState(""); // Estado para mostrar el valor formateado
+  const [error, setError] = useState(""); // Estado para el mensaje de error
 
   const db = getFirestore(app);
   const storage = getStorage(app);
@@ -68,6 +70,14 @@ const Form = ({
   useEffect(() => {
     if (selectedProperty) {
       setProperty(selectedProperty);
+      // Formatear el precio al cargar la propiedad seleccionada
+      setPricePerM2Formatted(
+        selectedProperty.pricePerM2Raw
+          ? new Intl.NumberFormat("en-US").format(
+              selectedProperty.pricePerM2Raw
+            )
+          : ""
+      );
     }
   }, [selectedProperty]);
 
@@ -77,7 +87,19 @@ const Form = ({
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setProperty({ ...property, [name]: value });
+    console.log(name, value);
+    // Separar el control del precio para formatearlo correctamente
+    if (name === "pricePerM2Raw") {
+      const rawValue = value.replace(/[^0-9]/g, ""); // Remover cualquier carácter no numérico
+      const formattedValue = rawValue
+        ? new Intl.NumberFormat("en-US").format(rawValue)
+        : "";
+      console.log(rawValue, formattedValue);
+      setProperty({ ...property, [name]: rawValue });
+      setPricePerM2Formatted(formattedValue);
+    } else {
+      setProperty({ ...property, [name]: value });
+    }
   };
 
   const handleFileChange = (e) => {
@@ -103,6 +125,24 @@ const Form = ({
   };
 
   const saveProperty = async () => {
+    // Validación de campos obligatorios
+    if (!property.name) {
+      setError("Por favor, ingrese el nombre de la propiedad.");
+      return;
+    }
+    if (!property.district) {
+      setError("Por favor, seleccione un distrito.");
+      return;
+    }
+    if (
+      !property.location ||
+      !property.location.lat ||
+      !property.location.lng
+    ) {
+      setError("Por favor, seleccione las coordenadas de la ubicación.");
+      return;
+    }
+
     try {
       let propertyDocRef;
 
@@ -141,10 +181,13 @@ const Form = ({
         photos: [],
         location: propertyLocation,
       });
+      setPricePerM2Formatted("");
       setSelectedProperty(null);
+      setError(""); // Limpiar errores
       fetchProperties();
     } catch (e) {
       console.error("Error al guardar la propiedad: ", e);
+      setError("Hubo un error al guardar la propiedad. Inténtelo de nuevo.");
     }
   };
 
@@ -157,6 +200,11 @@ const Form = ({
       <Typography variant='h5' component='h2' mb={2}>
         Detalles de la Propiedad
       </Typography>
+      {error && (
+        <Typography variant='body2' color='error' mb={2}>
+          {error}
+        </Typography>
+      )}
       <Stack spacing={3}>
         <TextField
           label='Nombre'
@@ -200,10 +248,9 @@ const Form = ({
 
         <Stack direction='row' spacing={2}>
           <TextField
-            type='number'
             label='Precio por m²'
-            name='pricePerM2'
-            value={property.pricePerM2}
+            name='pricePerM2Raw'
+            value={pricePerM2Formatted} // Usar valor formateado en el input
             onChange={handleInputChange}
             fullWidth
           />
