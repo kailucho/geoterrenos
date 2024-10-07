@@ -18,6 +18,7 @@ import {
 import LogoutIcon from "@mui/icons-material/Logout";
 import AddIcon from "@mui/icons-material/Add";
 import PropertyIcon from "@mui/icons-material/LocationCity";
+import Navbar from "../components/Navbar";
 
 const HomePage = () => {
   const [propertyLocation, setPropertyLocation] = useState(null);
@@ -43,17 +44,7 @@ const HomePage = () => {
 
   return (
     <>
-      <AppBar position='static' color='secondary'>
-        <Toolbar sx={{ justifyContent: "space-between" }}>
-          <Typography variant='h6' component='div'>
-            <PropertyIcon sx={{ mr: 1 }} />
-            Property Management
-          </Typography>
-          <IconButton color='inherit'>
-            <LogoutIcon />
-          </IconButton>
-        </Toolbar>
-      </AppBar>
+      <Navbar />
 
       <Container maxWidth='xl' sx={{ mt: 4, mb: 4 }}>
         {isSmallScreen ? (
