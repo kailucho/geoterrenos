@@ -26,7 +26,7 @@ const LoginPage = () => {
   return (
     <div className='login-page'>
       <div className='login-banner'>
-        <img src={"/assets/portada.jpg"} alt='Paisaje Urbano' />
+        <img src={"/assets/portada-misti.webp"} alt='Paisaje Urbano' />
       </div>
       <div className='login-content'>
         <h1>Bienvenidos a SALMER</h1>

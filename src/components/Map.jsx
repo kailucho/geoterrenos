@@ -1,18 +1,20 @@
 import React, { useState, useCallback } from "react";
-import {
-  GoogleMap,
-  useJsApiLoader,
-  Marker,
-  InfoWindow,
-} from "@react-google-maps/api";
+import { GoogleMap, useJsApiLoader, Marker } from "@react-google-maps/api";
 import {
   Card,
   CardContent,
-  CardMedia,
   Typography,
   Box,
-  Stack,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
+  Chip,
 } from "@mui/material";
+import { Carousel } from "react-responsive-carousel";
+import "react-responsive-carousel/lib/styles/carousel.min.css"; // Importar estilos del carousel
 
 const containerStyle = {
   width: "100%",
@@ -20,7 +22,7 @@ const containerStyle = {
 };
 
 const center = {
-  lat: -16.409047, // Centro de Lima por defecto
+  lat: -16.409047,
   lng: -71.537451,
 };
 
@@ -31,6 +33,7 @@ const Map = ({ setPropertyLocation, properties }) => {
 
   const [selectedMarker, setSelectedMarker] = useState(null);
   const [markerPosition, setMarkerPosition] = useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
 
   const onMapClick = useCallback(
     (e) => {
@@ -46,81 +49,145 @@ const Map = ({ setPropertyLocation, properties }) => {
 
   const handleMarkerClick = (property) => {
     setSelectedMarker(property);
+    setOpenDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setSelectedMarker(null);
   };
 
   return isLoaded ? (
-    <GoogleMap
-      mapContainerStyle={containerStyle}
-      center={center}
-      zoom={13}
-      onClick={onMapClick}
-    >
-      {/* Mostrar marcador de la posición actual seleccionada */}
-      {markerPosition && <Marker position={markerPosition} />}
+    <>
+      <GoogleMap
+        mapContainerStyle={containerStyle}
+        center={center}
+        zoom={13}
+        onClick={onMapClick}
+      >
+        {/* Mostrar marcador de la posición actual seleccionada */}
+        {markerPosition && <Marker position={markerPosition} />}
 
-      {/* Mostrar todos los marcadores de las propiedades */}
-      {properties.map((property, index) => (
-        <Marker
-          key={index}
-          position={property.location}
-          onClick={() => handleMarkerClick(property)}
-        />
-      ))}
+        {/* Mostrar todos los marcadores de las propiedades */}
+        {properties.map((property, index) => (
+          <Marker
+            key={index}
+            position={property.location}
+            onClick={() => handleMarkerClick(property)}
+          />
+        ))}
+      </GoogleMap>
 
-      {/* Mostrar ventana de información al hacer clic en un marcador */}
+      {/* Ventana de confirmación con toda la información */}
       {selectedMarker && (
-        <InfoWindow
-          position={selectedMarker.location}
-          onCloseClick={() => setSelectedMarker(null)}
+        <Dialog
+          open={openDialog}
+          onClose={handleCloseDialog}
+          maxWidth='md'
+          fullWidth
         >
-          <Card sx={{ maxWidth: 300, boxShadow: 3, borderRadius: 2 }}>
-            {selectedMarker.photos && selectedMarker.photos.length > 0 && (
-              <CardMedia
-                component='img'
-                height='140'
-                image={selectedMarker.photos[0]}
-                alt={selectedMarker.name}
-              />
-            )}
-            <CardContent>
-              <Box mb={2}>
-                <Typography variant='h5' component='div' gutterBottom>
-                  {selectedMarker.name}
-                </Typography>
-                <Typography variant='body2' color='textSecondary'>
-                  Tipo: {selectedMarker.type}
-                </Typography>
-                <Typography variant='body2' color='textSecondary'>
-                  Distrito: {selectedMarker.district}
-                </Typography>
-                <Typography variant='body2' color='textSecondary'>
-                  Precio: ${selectedMarker.price}/m²
-                </Typography>
-              </Box>
-
-              {/* Mostrar imágenes adicionales con Stack */}
-              <Stack direction='row' spacing={1}>
-                {selectedMarker.photos &&
-                  selectedMarker.photos.slice(1).map((url, idx) => (
-                    <Box
-                      key={idx}
-                      component='img'
-                      src={url}
-                      alt={`Propiedad ${idx}`}
-                      sx={{
-                        width: 50,
-                        height: 50,
-                        borderRadius: 1,
-                        boxShadow: 1,
-                      }}
-                    />
+          <DialogTitle>Detalles de la Propiedad</DialogTitle>
+          <DialogContent>
+            <Card sx={{ boxShadow: 3, borderRadius: 2 }}>
+              {/* Mostrar carousel si hay imágenes */}
+              {selectedMarker.photos && selectedMarker.photos.length > 0 ? (
+                <Carousel
+                  showThumbs={false}
+                  infiniteLoop
+                  autoPlay
+                  dynamicHeight
+                  showStatus={false}
+                  emulateTouch
+                >
+                  {selectedMarker.photos.map((url, idx) => (
+                    <div key={idx}>
+                      <img src={url} alt={`Propiedad ${idx}`} />
+                    </div>
                   ))}
-              </Stack>
-            </CardContent>
-          </Card>
-        </InfoWindow>
+                </Carousel>
+              ) : (
+                <Typography
+                  variant='body2'
+                  color='textSecondary'
+                  textAlign='center'
+                  p={2}
+                >
+                  No hay imágenes disponibles
+                </Typography>
+              )}
+
+              <CardContent>
+                <Box mb={2}>
+                  <Typography variant='h5' component='div' gutterBottom>
+                    {selectedMarker.name || "Sin nombre"}
+                  </Typography>
+                  <Divider sx={{ my: 2 }} />
+                  <Box mb={2}>
+                    <Typography variant='body2' color='textSecondary'>
+                      <strong>Tipo:</strong> {selectedMarker.type}
+                    </Typography>
+                    <Typography variant='body2' color='textSecondary'>
+                      <strong>Distrito:</strong> {selectedMarker.district}
+                    </Typography>
+                    <Typography variant='body2' color='textSecondary'>
+                      <strong>Dirección:</strong> {selectedMarker.address}
+                    </Typography>
+                    <Typography variant='body2' color='textSecondary'>
+                      <strong>Precio:</strong> {selectedMarker.currency}{" "}
+                      {new Intl.NumberFormat("en-US").format(
+                        selectedMarker.pricePerM2Raw
+                      )}
+                    </Typography>
+                    <Typography variant='body2' color='textSecondary'>
+                      <strong>Área Total:</strong> {selectedMarker.totalArea} m²
+                    </Typography>
+                    <Typography variant='body2' color='textSecondary'>
+                      <strong>Zonificación:</strong> {selectedMarker.zoning}
+                    </Typography>
+                    <Typography variant='body2' color='textSecondary'>
+                      <strong>Servicios:</strong>{" "}
+                      {selectedMarker.services || "No especificado"}
+                    </Typography>
+                  </Box>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography variant='body1' gutterBottom>
+                    <strong>Descripción:</strong>
+                  </Typography>
+                  <Typography variant='body2' color='textSecondary' paragraph>
+                    {selectedMarker.description || "Sin descripción"}
+                  </Typography>
+                  <Divider sx={{ my: 2 }} />
+                  {selectedMarker.features &&
+                    selectedMarker.features.length > 0 && (
+                      <Box mt={2}>
+                        <Typography variant='body1' gutterBottom>
+                          <strong>Características:</strong>
+                        </Typography>
+                        <Box>
+                          {selectedMarker.features.map((feature, idx) => (
+                            <Chip
+                              key={idx}
+                              label={feature}
+                              variant='outlined'
+                              color='primary'
+                              sx={{ mr: 1, mb: 1 }}
+                            />
+                          ))}
+                        </Box>
+                      </Box>
+                    )}
+                </Box>
+              </CardContent>
+            </Card>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDialog} color='primary'>
+              Cerrar
+            </Button>
+          </DialogActions>
+        </Dialog>
       )}
-    </GoogleMap>
+    </>
   ) : (
     <Box textAlign='center' mt={2}>
       Cargando mapa...

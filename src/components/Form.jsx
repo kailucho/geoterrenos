@@ -21,6 +21,7 @@ import {
   Typography,
   Stack,
   Box,
+  CircularProgress,
 } from "@mui/material";
 
 const Form = ({
@@ -45,6 +46,8 @@ const Form = ({
   });
   const [pricePerM2Formatted, setPricePerM2Formatted] = useState("");
   const [error, setError] = useState("");
+  const [photosCount, setPhotosCount] = useState(0); // Nuevo estado para contar las fotos
+  const [loading, setLoading] = useState(false); // Estado para el loader
 
   const db = getFirestore(app);
   const storage = getStorage(app);
@@ -101,6 +104,7 @@ const Form = ({
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files).slice(0, 3);
     setProperty({ ...property, photos: files });
+    setPhotosCount(files.length); // Actualiza el estado con el número de fotos seleccionadas
   };
 
   const handleDistrictChange = (e) => {
@@ -142,6 +146,8 @@ const Form = ({
       return;
     }
 
+    setLoading(true); // Inicia el loader
+
     try {
       let propertyDocRef;
 
@@ -179,12 +185,15 @@ const Form = ({
         currency: "PEN",
       });
       setPricePerM2Formatted("");
+      setPhotosCount(0); // Restablece el conteo de fotos
       setSelectedProperty(null);
       setError("");
       fetchProperties();
     } catch (e) {
       console.error("Error al guardar la propiedad: ", e);
       setError("Hubo un error al guardar la propiedad. Inténtelo de nuevo.");
+    } finally {
+      setLoading(false); // Detiene el loader
     }
   };
 
@@ -245,17 +254,14 @@ const Form = ({
 
         <Stack direction='row' spacing={2}>
           <TextField
-            label='Precio por m²'
+            label='Valor del inmueble'
             name='pricePerM2Raw'
             value={pricePerM2Formatted}
             onChange={handleInputChange}
             fullWidth
           />
           <FormControl sx={{ minWidth: 100 }}>
-            <Select
-              value={property.currency} // Ajustar a la moneda seleccionada en el estado
-              onChange={handleCurrencyChange}
-            >
+            <Select value={property.currency} onChange={handleCurrencyChange}>
               <MenuItem value='PEN'>Soles</MenuItem>
               <MenuItem value='USD'>Dólares</MenuItem>
             </Select>
@@ -328,9 +334,24 @@ const Form = ({
             onChange={handleFileChange}
           />
         </Button>
+        <Typography variant='body2' color='textSecondary'>
+          {photosCount}{" "}
+          {photosCount === 1 ? "foto seleccionada" : "fotos seleccionadas"}
+        </Typography>
 
-        <Button variant='contained' color='primary' onClick={saveProperty}>
-          {selectedProperty ? "Actualizar Propiedad" : "Guardar Propiedad"}
+        <Button
+          variant='contained'
+          color='primary'
+          onClick={saveProperty}
+          disabled={loading} // Deshabilita el botón mientras carga
+        >
+          {loading ? (
+            <CircularProgress size={24} />
+          ) : selectedProperty ? (
+            "Actualizar Propiedad"
+          ) : (
+            "Guardar Propiedad"
+          )}
         </Button>
       </Stack>
     </Box>
